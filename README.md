@@ -1,5 +1,8 @@
 # BiteBay — a food delivery app demo
 
+**Live web app:** https://thatsourabhguy.github.io/bitebay/
+**Android app:** `BiteBay-v1.0.apk` (built with `flutter build apk --release`)
+
 A Swiggy-style food ordering app built with Flutter. Everything you see —
 restaurants, dishes, prices, ratings, addresses, payment options — is sample
 data stored inside the app. There is **no server, no login and no real
@@ -153,6 +156,43 @@ what already exists.
 Food photographs are loaded from a free public photo service. If the device
 is offline, each photo is replaced by a soft coloured placeholder, so the
 app still looks complete without an internet connection.
+
+---
+
+## Updating the live website
+
+The live site is served from the `gh-pages` branch of this repository, using
+a second copy of the project kept in `../bitebay-ghpages`.
+
+After changing the code, run these three steps from the `bitebay` folder:
+
+```bash
+C:/src/flutter/bin/flutter build web --release --base-href /bitebay/
+```
+
+```bash
+cp -r build/web/. ../bitebay-ghpages/
+```
+
+```bash
+cd ../bitebay-ghpages && git add -A && git commit -m "Update live site" && git push
+```
+
+The website refreshes about a minute after the push. If you still see the old
+version, do a hard refresh in the browser (**Ctrl + Shift + R**) — the app
+caches itself so it can work offline.
+
+**Important:** `--base-href /bitebay/` must match the repository name. If you
+ever rename the repository, change that value too or the live page will load
+a blank screen.
+
+### Rebuilding the Android file
+
+```bash
+C:/src/flutter/bin/flutter build apk --release
+```
+
+The file appears at `build/app/outputs/flutter-apk/app-release.apk`.
 
 ---
 
