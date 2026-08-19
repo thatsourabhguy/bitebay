@@ -1,11 +1,11 @@
 {
-    "name": "bitebay",
-    "short_name": "bitebay",
+    "name": "BiteBay",
+    "short_name": "BiteBay",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#FFFFFF",
+    "theme_color": "#FF5A1F",
+    "description": "BiteBay - a Swiggy-inspired food delivery app demo. Browse restaurants, build a cart and place a sample order. Demo only: no real payments.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
