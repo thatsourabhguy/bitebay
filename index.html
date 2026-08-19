@@ -41,6 +41,10 @@
     For more details:
     * https://docs.flutter.dev/platform-integration/web/initialization
   -->
+  <!-- Razorpay's payment window. This must load before the app so the
+       checkout popup can open on the web version. -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
