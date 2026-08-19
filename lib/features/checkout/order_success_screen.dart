@@ -207,6 +207,13 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen>
                         ),
                       ],
                     ),
+                    if (order.paymentId != null) ...<Widget>[
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        'Payment reference: ${order.paymentId}',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
                   ],
                 ),
 
@@ -218,8 +225,11 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen>
                 const SizedBox(height: AppSpacing.sm),
                 Center(
                   child: Text(
-                    'This is a demo order. No payment was taken and no '
-                    'restaurant was contacted.',
+                    order.paymentId == null
+                        ? 'This is a demo order. No payment was taken and no '
+                              'restaurant was contacted.'
+                        : 'Test payment only — no real money moved, and no '
+                              'restaurant was contacted.',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodySmall,
                   ),

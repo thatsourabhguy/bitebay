@@ -38,6 +38,14 @@ dependencies:
   # Shares the cart between screens so every screen sees the same cart.
   provider: ^6.1.2
 
+  # Razorpay's official payment package. It covers Android and iOS only;
+  # the web version uses Razorpay's own checkout.js script instead, wired up
+  # in lib/payments/razorpay_web_impl.dart.
+  razorpay_flutter: ^1.4.5
+
+  # Lets the web build talk to Razorpay's checkout.js script.
+  web: ^1.1.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

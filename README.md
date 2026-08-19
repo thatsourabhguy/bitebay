@@ -142,7 +142,8 @@ opening and responding to taps.
 
 - Sign in / sign up
 - A real backend or database
-- Real payments
+- **Live** payments — Razorpay is wired up in **test mode** only, and needs a
+  server before it can safely take real money (see the Payments section)
 - Live restaurant data
 - Order tracking and order history
 
@@ -156,6 +157,77 @@ what already exists.
 Food photographs are loaded from a free public photo service. If the device
 is offline, each photo is replaced by a soft coloured placeholder, so the
 app still looks complete without an internet connection.
+
+---
+
+## Payments (Razorpay)
+
+The checkout screen opens a real Razorpay payment window, in **test mode**.
+Every payment method except Cash on Delivery goes through Razorpay.
+
+Android and iOS use Razorpay's official Flutter package. The web uses
+Razorpay's own `checkout.js` script. The right one is picked automatically, and
+both are driven through a single `PaymentService` in `lib/payments/`, so no
+screen knows which payment company is being used.
+
+### Changing the key
+
+The Key Id lives on one line in `lib/payments/razorpay_config.dart`:
+
+```dart
+static const String _keyIdWrittenInCode = 'rzp_test_...';
+```
+
+To use a different key, get it from **https://dashboard.razorpay.com** →
+**Account & Settings** → **API Keys** (with the dashboard in **Test Mode**),
+paste it on that line, and rebuild.
+
+Leave the line empty (`''`) and the app quietly goes back to the old pretend
+checkout with no payment window — handy if you want to demo without payments.
+
+### Testing a payment
+
+In test mode use Razorpay's test card — **any** future expiry date and **any**
+CVV work:
+
+| Field  | Value                 |
+| ------ | --------------------- |
+| Card   | `4111 1111 1111 1111` |
+| Expiry | any future date       |
+| CVV    | any 3 digits          |
+
+No real money moves. Test payments appear in your Razorpay dashboard while it
+is in Test Mode.
+
+### The two keys, and which one is safe
+
+Razorpay gives you a **Key Id** and a **Key Secret**.
+
+- The **Key Id** is safe in this project. It is meant to be visible inside apps
+  and web pages.
+- The **Key Secret** must **never** go into this project. Anyone can open up an
+  installed app or a web page and read whatever is inside it. The secret
+  belongs only on a server you control.
+
+### Before you take real money — please read
+
+This build has no server, which has one important consequence: **the app cannot
+prove a payment really happened.** It simply believes the phone when the phone
+says "paid". In test mode that does not matter. With real money, someone
+technical could fake a successful payment and order food for free.
+
+To take real payments safely you need a small server that:
+
+1. creates each order through Razorpay's Orders API before checkout, and
+2. verifies Razorpay's signature afterwards using the Key Secret.
+
+That server is the only place the Key Secret should ever live. The app is
+already structured for this: everything payment-related sits behind
+`PaymentService` in `lib/payments/`, so adding the server steps does not
+require changing any screen.
+
+You will also need a Razorpay account with KYC completed before live mode can
+be enabled, which takes a few days.
 
 ---
 

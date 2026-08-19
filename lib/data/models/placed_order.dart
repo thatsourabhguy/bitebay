@@ -16,6 +16,7 @@ class PlacedOrder {
     required this.restaurantName,
     required this.placedAt,
     required this.etaMinutes,
+    this.paymentId,
   });
 
   final String id;
@@ -26,6 +27,11 @@ class PlacedOrder {
   final String restaurantName;
   final DateTime placedAt;
   final int etaMinutes;
+
+  /// Razorpay's reference for the payment, e.g. `pay_Nq1AbCdEf23456`.
+  /// Null for Cash on Delivery, and for demo orders placed before a
+  /// Razorpay key was set up.
+  final String? paymentId;
 
   int get totalDishes =>
       items.fold(0, (int sum, CartItem item) => sum + item.quantity);

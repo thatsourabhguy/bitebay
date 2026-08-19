@@ -13,6 +13,8 @@ import '../../data/models/delivery_address.dart';
 import '../../data/models/payment_method.dart';
 import '../../data/models/placed_order.dart';
 import '../../data/repositories/restaurant_repository.dart';
+import '../../payments/payment_service.dart';
+import '../../payments/razorpay_config.dart';
 import '../../state/cart_controller.dart';
 import '../../widgets/bill_details_card.dart';
 import '../../widgets/common_widgets.dart';
@@ -42,10 +44,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   /// away. It stops the screen redrawing itself with an emptied cart.
   bool _placingOrder = false;
 
+  /// Opens the Razorpay payment window. Created once per visit to this screen.
+  late final PaymentService _paymentService;
+
   @override
   void initState() {
     super.initState();
+    _paymentService = createPaymentService();
     _loadOptions();
+  }
+
+  @override
+  void dispose() {
+    _paymentService.dispose();
+    super.dispose();
   }
 
   Future<void> _loadOptions() async {
@@ -69,10 +81,50 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final PaymentMethod? payment = _payment;
     if (cart.isEmpty || address == null || payment == null) return;
 
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    final String restaurantName = cart.restaurant?.name ?? 'BiteBay Kitchen';
+    final int amountToCollect = cart.grandTotal;
+
     setState(() => _placingOrder = true);
 
-    // Pretend we are talking to a payment gateway and a kitchen.
-    await Future<void>.delayed(const Duration(milliseconds: 1200));
+    String? paymentId;
+
+    if (payment.type == PaymentType.cashOnDelivery) {
+      // Nothing to collect now — the delivery partner takes the money.
+      await Future<void>.delayed(const Duration(milliseconds: 700));
+    } else {
+      final PaymentOutcome outcome = await _paymentService.payForOrder(
+        amountInRupees: amountToCollect,
+        description: 'Order from $restaurantName',
+      );
+      if (!mounted) return;
+
+      switch (outcome) {
+        case PaymentSucceeded(paymentId: final String id):
+          paymentId = id;
+
+        case PaymentSkipped():
+          // No Razorpay key set up yet, so fall back to the demo behaviour.
+          await Future<void>.delayed(const Duration(milliseconds: 700));
+
+        case PaymentCancelled():
+          setState(() => _placingOrder = false);
+          messenger
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              const SnackBar(content: Text('Payment cancelled. Your cart is safe.')),
+            );
+          return;
+
+        case PaymentFailed(message: final String message):
+          setState(() => _placingOrder = false);
+          messenger
+            ..hideCurrentSnackBar()
+            ..showSnackBar(SnackBar(content: Text(message)));
+          return;
+      }
+    }
+
     if (!mounted) return;
 
     final PlacedOrder order = PlacedOrder(
@@ -81,9 +133,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       breakdown: cart.breakdown,
       address: address,
       paymentLabel: payment.title,
-      restaurantName: cart.restaurant?.name ?? 'BiteBay Kitchen',
+      restaurantName: restaurantName,
       placedAt: DateTime.now(),
       etaMinutes: (cart.restaurant?.deliveryMinutes ?? 30) + 5,
+      paymentId: paymentId,
     );
 
     // Move to the confirmation screen, then empty the cart.
@@ -177,7 +230,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                'Demo only — no real payment is taken.',
+                RazorpayConfig.isConfigured
+                    ? (RazorpayConfig.isTestKey
+                          ? 'Razorpay TEST MODE — use a test card, no real money moves.'
+                          : 'Payments are processed by Razorpay.')
+                    : 'Demo only — no real payment is taken.',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: AppSpacing.sm),
